@@ -35,7 +35,12 @@ def available_resolutions(info: dict) -> list[dict]:
 
     for item in info.get("formats") or []:
         height = item.get("height")
-        if not isinstance(height, int) or item.get("vcodec") in {None, "none"}:
+        if (
+            not isinstance(height, int)
+            or item.get("vcodec") in {None, "none"}
+            or not item.get("url")
+            or item.get("protocol") in {"mhtml", "images"}
+        ):
             continue
 
         candidate = {
@@ -57,7 +62,7 @@ def available_resolutions(info: dict) -> list[dict]:
 
 def format_selector(height: str) -> str:
     if height == "best":
-        return "bestvideo*+bestaudio/best"
+        return "bestvideo+bestaudio/best"
 
     if not re.fullmatch(r"\d{3,4}", height or ""):
         raise ValueError("올바른 해상도를 선택해 주세요.")
@@ -67,6 +72,6 @@ def format_selector(height: str) -> str:
         raise ValueError("지원하지 않는 해상도입니다.")
 
     return (
-        f"bestvideo*[height<={numeric_height}]+bestaudio/"
+        f"bestvideo[height<={numeric_height}]+bestaudio/"
         f"best[height<={numeric_height}]/best"
     )
