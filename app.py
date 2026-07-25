@@ -18,6 +18,15 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 
 MAX_DOWNLOAD_MB = int(os.getenv("MAX_DOWNLOAD_MB", "500"))
 DOWNLOAD_TIMEOUT_SECONDS = int(os.getenv("DOWNLOAD_TIMEOUT_SECONDS", "900"))
+YOUTUBE_COOKIES_FILE = os.getenv("YOUTUBE_COOKIES_FILE", "/etc/secrets/youtube_cookies.txt")
+
+
+def youtube_cookie_options() -> dict:
+    """Use a Render secret file when YouTube requires server authentication."""
+    cookie_path = Path(YOUTUBE_COOKIES_FILE)
+    if cookie_path.is_file() and cookie_path.stat().st_size > 0:
+        return {"cookiefile": str(cookie_path)}
+    return {}
 
 
 def friendly_download_error(output: str) -> str:
@@ -26,8 +35,10 @@ def friendly_download_error(output: str) -> str:
         return "비공개 영상은 다운로드할 수 없습니다."
     if "video unavailable" in lowered:
         return "재생할 수 없는 영상입니다."
-    if "sign in to confirm" in lowered or "not a bot" in lowered:
-        return "유튜브가 서버 접속을 제한했습니다. 잠시 후 다시 시도해 주세요."
+    if "sign in to confirm" in lowered or "not a bot" in lowered or "login_required" in lowered:
+        if not youtube_cookie_options():
+            return "서버 인증이 필요합니다. 관리자가 Render에 YouTube 쿠키 비밀 파일을 등록해야 합니다."
+        return "YouTube 인증 쿠키가 만료되었거나 서버 IP가 제한되었습니다. 관리자에게 쿠키 갱신을 요청해 주세요."
     if "requested format is not available" in lowered:
         return "선택한 해상도를 사용할 수 없습니다. 다른 해상도를 선택해 주세요."
     if "file is larger than max-filesize" in lowered:
@@ -57,6 +68,7 @@ def formats():
             "skip_download": True,
             "socket_timeout": 20,
             "retries": 2,
+            **youtube_cookie_options(),
         }
         with YoutubeDL(options) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -119,8 +131,11 @@ def download():
             output_template,
             "--print",
             "after_move:filepath",
-            url,
         ]
+        cookie_options = youtube_cookie_options()
+        if cookie_options:
+            command.extend(["--cookies", cookie_options["cookiefile"]])
+        command.append(url)
 
         result = subprocess.run(
             command,
