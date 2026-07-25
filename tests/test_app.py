@@ -4,9 +4,9 @@ from core import available_resolutions, format_selector, validate_youtube_url
 
 
 class UrlValidationTests(unittest.TestCase):
-    def test_accepts_youtube_urls(self):
+    def test_accepts_and_cleans_youtube_urls(self):
         self.assertEqual(
-            validate_youtube_url("https://www.youtube.com/watch?v=abc123"),
+            validate_youtube_url("https://www.youtube.com/watch?v=abc123&list=PL1&index=2"),
             "https://www.youtube.com/watch?v=abc123",
         )
         self.assertEqual(
@@ -22,17 +22,21 @@ class UrlValidationTests(unittest.TestCase):
 
 
 class FormatTests(unittest.TestCase):
-    def test_selector_limits_height(self):
-        self.assertIn("height<=720", format_selector("720"))
-        self.assertEqual(format_selector("best"), "bestvideo+bestaudio/best")
+    def test_selector_matches_desktop_program(self):
+        selector = format_selector("720")
+        self.assertIn("height<=720", selector)
+        self.assertIn("bestvideo", selector)
+        self.assertEqual(
+            format_selector("best"),
+            "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
+        )
 
     def test_resolutions_are_unique_and_descending(self):
         info = {
             "formats": [
-                {"height": 720, "vcodec": "avc1", "tbr": 1000, "fps": 30, "url": "https://media.example/720a"},
-                {"height": 720, "vcodec": "vp9", "tbr": 1500, "fps": 60, "url": "https://media.example/720b"},
-                {"height": 1080, "vcodec": "vp9", "tbr": 1800, "fps": 30, "url": "https://media.example/1080"},
-                {"height": 2160, "vcodec": "vp9", "tbr": 3000, "fps": 30},
+                {"height": 720, "vcodec": "avc1", "tbr": 1000, "fps": 30},
+                {"height": 720, "vcodec": "vp9", "tbr": 1500, "fps": 60},
+                {"height": 1080, "vcodec": "vp9", "tbr": 1800, "fps": 30},
                 {"height": None, "vcodec": "none", "tbr": 128},
             ]
         }
