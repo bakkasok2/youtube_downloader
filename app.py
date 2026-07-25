@@ -74,7 +74,7 @@ def formats():
     payload = request.get_json(silent=True) or {}
     try:
         url = validate_youtube_url(payload.get("url", ""))
-        options = {
+        base_options = {
             "quiet": True,
             "no_warnings": True,
             "noplaylist": True,
@@ -82,63 +82,82 @@ def formats():
             "ignore_no_formats_error": True,
             "socket_timeout": 20,
             "retries": 2,
-            "extractor_args": {
-                "youtube": {"player_client": ["web_safari", "mweb"]},
-                "youtubepot-bgutilscript": {
-                    "server_home": ["/root/bgutil-ytdlp-pot-provider/server"]
+        }
+        provider_args = {
+            "youtubepot-bgutilscript": {
+                "server_home": ["/root/bgutil-ytdlp-pot-provider/server"]
+            }
+        }
+        attempts = [
+            {
+                **base_options,
+                "extractor_args": {
+                    "youtube": {"player_client": ["android_vr", "web_safari"]},
+                    **provider_args,
                 },
             },
-            **youtube_cookie_options(),
-        }
-        with YoutubeDL(options) as ydl:
-            info = ydl.extract_info(url, download=False)
+            {
+                **base_options,
+                "extractor_args": {
+                    "youtube": {"player_client": ["mweb"]},
+                    **provider_args,
+                },
+                **youtube_cookie_options(),
+            },
+        ]
 
-        if not info or info.get("_type") == "playlist":
-            raise ValueError("재생목록이 아닌 영상 한 개의 주소를 입력해 주세요.")
+        last_info = None
+        last_error = None
+        for options in attempts:
+            try:
+                with YoutubeDL(options) as ydl:
+                    info = ydl.extract_info(url, download=False)
+            except DownloadError as exc:
+                last_error = exc
+                continue
 
-        resolutions = available_resolutions(info)
-        if not resolutions:
-            raw_formats = info.get("formats") or []
+            if not info or info.get("_type") == "playlist":
+                continue
+
+            last_info = info
+            resolutions = available_resolutions(info)
+            if resolutions:
+                return jsonify(
+                    {
+                        "title": info.get("title") or "제목 없는 영상",
+                        "thumbnail": info.get("thumbnail"),
+                        "duration": info.get("duration"),
+                        "resolutions": resolutions,
+                    }
+                )
+
+        if last_info:
+            raw_formats = last_info.get("formats") or []
             video_formats = [
                 item for item in raw_formats
                 if item.get("vcodec") not in {None, "none"}
             ]
             url_formats = [item for item in video_formats if item.get("url")]
-            clients = sorted({
-                str(item.get("format_note") or item.get("protocol") or "unknown")
-                for item in video_formats
-            })[:5]
             app.logger.warning(
-                "No downloadable resolutions: total=%d video=%d url=%d types=%s",
+                "No downloadable resolutions after fallbacks: total=%d video=%d url=%d",
                 len(raw_formats),
                 len(video_formats),
                 len(url_formats),
-                clients,
             )
             raise ValueError(
-                "선택할 수 있는 영상 해상도를 찾지 못했습니다. "
+                "YouTube가 이 서버에 영상 형식을 제공하지 않았습니다. "
                 f"(진단: 전체 {len(raw_formats)}, 영상 {len(video_formats)}, "
                 f"주소 {len(url_formats)})"
             )
 
-        return jsonify(
-            {
-                "title": info.get("title") or "제목 없는 영상",
-                "thumbnail": info.get("thumbnail"),
-                "duration": info.get("duration"),
-                "resolutions": resolutions,
-            }
-        )
+        if last_error:
+            raise last_error
+        raise ValueError("영상 정보를 확인하지 못했습니다.")
+
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except DownloadError as exc:
-        message = str(exc)
-        lowered = message.lower()
-        if "sign in to confirm" in lowered or "not a bot" in lowered or "login_required" in lowered:
-            error = friendly_download_error(message)
-        else:
-            error = "영상 형식 정보를 불러오지 못했습니다. 다른 공개 영상을 확인해 주세요."
-        return jsonify({"error": error}), 422
+        return jsonify({"error": friendly_download_error(str(exc))}), 422
     except Exception:
         app.logger.exception("Format lookup failed")
         return jsonify({"error": "영상 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."}), 500
