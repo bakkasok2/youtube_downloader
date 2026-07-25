@@ -32,6 +32,18 @@ def proxy_options() -> dict:
     return {"proxy": YOUTUBE_PROXY_URL}
 
 
+def ffmpeg_options() -> dict:
+    if os.name != "nt":
+        return {}
+    try:
+        import imageio_ffmpeg
+
+        return {"ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe()}
+    except Exception:
+        app.logger.warning("Bundled FFmpeg was not found")
+        return {}
+
+
 def base_ydl_options() -> dict:
     return {
         "quiet": True,
@@ -40,6 +52,7 @@ def base_ydl_options() -> dict:
         "retries": 10,
         "fragment_retries": 10,
         "skip_unavailable_fragments": False,
+        **ffmpeg_options(),
         **proxy_options(),
     }
 
