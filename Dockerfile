@@ -3,16 +3,10 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=10000 \
-    MAX_DOWNLOAD_MB=500 \
-    DOWNLOAD_TIMEOUT_SECONDS=900 \
-    DENO_INSTALL=/usr/local
+    MAX_DOWNLOAD_MB=500
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg git unzip \
-    && curl -fsSL https://deno.land/install.sh | sh \
-    && git clone --depth 1 --single-branch --branch 1.3.1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /root/bgutil-ytdlp-pot-provider \
-    && cd /root/bgutil-ytdlp-pot-provider/server \
-    && deno install --allow-scripts=npm:canvas --frozen \
+    && apt-get install -y --no-install-recommends ca-certificates ffmpeg git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
