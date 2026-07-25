@@ -4,10 +4,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=10000 \
     MAX_DOWNLOAD_MB=500 \
-    DOWNLOAD_TIMEOUT_SECONDS=900
+    DOWNLOAD_TIMEOUT_SECONDS=900 \
+    DENO_INSTALL=/usr/local
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates ffmpeg git \
+    && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg git unzip \
+    && curl -fsSL https://deno.land/install.sh | sh \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
