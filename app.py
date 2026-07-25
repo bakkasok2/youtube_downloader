@@ -83,7 +83,7 @@ def formats():
             "socket_timeout": 20,
             "retries": 2,
             "extractor_args": {
-                "youtube": {"player_client": ["mweb"]},
+                "youtube": {"player_client": ["web_safari", "mweb"]},
                 "youtubepot-bgutilscript": {
                     "server_home": ["/root/bgutil-ytdlp-pot-provider/server"]
                 },
@@ -140,7 +140,7 @@ def download():
             "--restrict-filenames",
             "--no-warnings",
             "--extractor-args",
-            "youtube:player_client=mweb",
+            "youtube:player_client=web_safari,mweb",
             "--extractor-args",
             "youtubepot-bgutilscript:server_home=/root/bgutil-ytdlp-pot-provider/server",
             "--format",
