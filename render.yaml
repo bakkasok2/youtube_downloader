@@ -8,5 +8,5 @@ services:
     envVars:
       - key: MAX_DOWNLOAD_MB
         value: "500"
-      - key: DOWNLOAD_TIMEOUT_SECONDS
-        value: "900"
+      - key: YOUTUBE_PROXY_URL
+        sync: false
