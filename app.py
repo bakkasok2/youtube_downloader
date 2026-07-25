@@ -22,11 +22,24 @@ YOUTUBE_COOKIES_FILE = os.getenv("YOUTUBE_COOKIES_FILE", "/etc/secrets/youtube_c
 
 
 def youtube_cookie_options() -> dict:
-    """Use a Render secret file when YouTube requires server authentication."""
-    cookie_path = Path(YOUTUBE_COOKIES_FILE)
-    if cookie_path.is_file() and cookie_path.stat().st_size > 0:
-        return {"cookiefile": str(cookie_path)}
-    return {}
+    """Copy Render's read-only secret cookie file to a writable runtime path."""
+    secret_path = Path(YOUTUBE_COOKIES_FILE)
+    if not secret_path.is_file() or secret_path.stat().st_size == 0:
+        return {}
+
+    runtime_path = Path(tempfile.gettempdir()) / f"jini-youtube-cookies-{os.getpid()}.txt"
+    try:
+        if (
+            not runtime_path.is_file()
+            or runtime_path.stat().st_size != secret_path.stat().st_size
+        ):
+            shutil.copyfile(secret_path, runtime_path)
+            runtime_path.chmod(0o600)
+    except OSError:
+        app.logger.exception("Failed to prepare YouTube cookie file")
+        return {}
+
+    return {"cookiefile": str(runtime_path)}
 
 
 def friendly_download_error(output: str) -> str:
