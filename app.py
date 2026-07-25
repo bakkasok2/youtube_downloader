@@ -82,6 +82,12 @@ def formats():
             "ignore_no_formats_error": True,
             "socket_timeout": 20,
             "retries": 2,
+            "extractor_args": {
+                "youtube": {"player_client": ["mweb"]},
+                "youtubepot-bgutilscript": {
+                    "server_home": ["/root/bgutil-ytdlp-pot-provider/server"]
+                },
+            },
             **youtube_cookie_options(),
         }
         with YoutubeDL(options) as ydl:
@@ -133,6 +139,10 @@ def download():
             "--no-playlist",
             "--restrict-filenames",
             "--no-warnings",
+            "--extractor-args",
+            "youtube:player_client=mweb",
+            "--extractor-args",
+            "youtubepot-bgutilscript:server_home=/root/bgutil-ytdlp-pot-provider/server",
             "--format",
             selector,
             "--merge-output-format",
