@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: jini-youtube-downloader
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: MAX_DOWNLOAD_MB
+        value: "500"
+      - key: DOWNLOAD_TIMEOUT_SECONDS
+        value: "900"
