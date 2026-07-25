@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#6d4aff">
+    <title>Jini YouTube Downloader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img">
+            <path d="M18 14.5 35 24 18 33.5z"></path>
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">FAST · SIMPLE · MP4</p>
+          <h1>Jini YouTube Downloader</h1>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="pill">서버에서 안전하게 변환</span>
+          <h2>원하는 화질 그대로,<br><strong>MP4로 간편하게.</strong></h2>
+          <p>유튜브 영상 주소를 붙여넣고 해상도를 선택하세요.</p>
+        </div>
+
+        <div class="download-card">
+          <form id="lookup-form">
+            <label for="video-url">유튜브 영상 주소</label>
+            <div class="url-row">
+              <input
+                id="video-url"
+                name="url"
+                type="url"
+                inputmode="url"
+                placeholder="https://www.youtube.com/watch?v=..."
+                autocomplete="off"
+                required
+              >
+              <button id="lookup-button" type="submit">영상 확인</button>
+            </div>
+          </form>
+
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+
+          <section id="video-panel" class="video-panel" hidden>
+            <img id="thumbnail" alt="">
+            <div class="video-info">
+              <p id="video-title"></p>
+              <span id="video-duration"></span>
+            </div>
+            <div class="quality-group">
+              <label for="quality">다운로드 화질</label>
+              <select id="quality"></select>
+            </div>
+            <button id="download-button" class="download-button" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"></path>
+              </svg>
+              MP4 다운로드
+            </button>
+          </section>
+        </div>
+      </section>
+
+      <section class="features" aria-label="주요 기능">
+        <article>
+          <span>01</span>
+          <h3>주소 붙여넣기</h3>
+          <p>영상 한 개의 URL을 입력합니다.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>해상도 선택</h3>
+          <p>사용 가능한 화질을 확인합니다.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>MP4 저장</h3>
+          <p>내 컴퓨터에 바로 다운로드합니다.</p>
+        </article>
+      </section>
+
+      <footer>
+        본인이 소유하거나 다운로드 허가를 받은 콘텐츠에만 사용하세요.
+      </footer>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </body>
+</html>
