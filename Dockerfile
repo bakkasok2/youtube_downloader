@@ -10,6 +10,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg git unzip \
     && curl -fsSL https://deno.land/install.sh | sh \
+    && git clone --depth 1 --single-branch --branch 1.3.1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /root/bgutil-ytdlp-pot-provider \
+    && cd /root/bgutil-ytdlp-pot-provider/server \
+    && deno install --allow-scripts=npm:canvas --frozen \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
