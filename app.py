@@ -79,6 +79,7 @@ def formats():
             "no_warnings": True,
             "noplaylist": True,
             "skip_download": True,
+            "ignore_no_formats_error": True,
             "socket_timeout": 20,
             "retries": 2,
             **youtube_cookie_options(),
@@ -104,7 +105,13 @@ def formats():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except DownloadError as exc:
-        return jsonify({"error": friendly_download_error(str(exc))}), 422
+        message = str(exc)
+        lowered = message.lower()
+        if "sign in to confirm" in lowered or "not a bot" in lowered or "login_required" in lowered:
+            error = friendly_download_error(message)
+        else:
+            error = "영상 형식 정보를 불러오지 못했습니다. 다른 공개 영상을 확인해 주세요."
+        return jsonify({"error": error}), 422
     except Exception:
         app.logger.exception("Format lookup failed")
         return jsonify({"error": "영상 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."}), 500
