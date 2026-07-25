@@ -66,7 +66,7 @@ def index():
 
 @app.get("/health")
 def health():
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok", "commit": os.getenv("RENDER_GIT_COMMIT", "local")[:12]})
 
 
 @app.post("/api/formats")
@@ -98,7 +98,28 @@ def formats():
 
         resolutions = available_resolutions(info)
         if not resolutions:
-            raise ValueError("선택할 수 있는 영상 해상도를 찾지 못했습니다.")
+            raw_formats = info.get("formats") or []
+            video_formats = [
+                item for item in raw_formats
+                if item.get("vcodec") not in {None, "none"}
+            ]
+            url_formats = [item for item in video_formats if item.get("url")]
+            clients = sorted({
+                str(item.get("format_note") or item.get("protocol") or "unknown")
+                for item in video_formats
+            })[:5]
+            app.logger.warning(
+                "No downloadable resolutions: total=%d video=%d url=%d types=%s",
+                len(raw_formats),
+                len(video_formats),
+                len(url_formats),
+                clients,
+            )
+            raise ValueError(
+                "선택할 수 있는 영상 해상도를 찾지 못했습니다. "
+                f"(진단: 전체 {len(raw_formats)}, 영상 {len(video_formats)}, "
+                f"주소 {len(url_formats)})"
+            )
 
         return jsonify(
             {
