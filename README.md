@@ -28,7 +28,7 @@
 설정이 끝나면 검은 창에 아래 형식의 고정 주소가 표시됩니다.
 
 ```text
-https://주소이름.share.zrok.io
+https://주소이름.shares.zrok.io
 ```
 
 ### 다음부터
