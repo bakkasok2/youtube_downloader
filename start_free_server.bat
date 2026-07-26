@@ -111,7 +111,7 @@ timeout /t 5 /nobreak >nul
 echo.
 echo ==============================================
 echo   FIXED URL
-echo   https://%ZROK_NAME%.share.zrok.io
+echo   https://%ZROK_NAME%.shares.zrok.io
 echo ==============================================
 echo.
 echo Keep this window and your computer running.
